@@ -17,7 +17,7 @@ Autonomous agents may need permission to spend, but unrestricted wallet custody 
 - **Natural-language mandates:** GenLayer evaluates the declared expenditure against the owner’s written policy after hard controls pass.
 - **Exact payment execution:** an approved request is tied to one recipient and one amount.
 - **Versioned policy:** mandate and limit updates increment the mandate version and reset the configured period accounting.
-- **Compact request auditability:** finalized requests retain the mandate version and policy digest used for evaluation, without copying the full mandate into each request.
+- **Compact request auditability:** finalized requests retain the mandate version and a policy digest for policy attribution and auditability. The digest represents the relevant mandate and spending-configuration state; semantic evaluation uses the immutable proposal snapshot defined below, not the digest.
 
 ## How MANDATE Works
 
@@ -96,7 +96,7 @@ The contract passes an immutable proposal snapshot containing:
 
 The prompt separates mandate policy from meta-instructions. Substantive permissions, prohibitions, and conditions in the mandate are binding policy. Text in the mandate, category, purpose, or recipient fields that attempts to override evaluator behavior is treated as untrusted data and ignored as a meta-instruction.
 
-The semantic evaluator must return exactly one JSON object with exactly one key, `decision`, whose value is `APPROVED` or `REJECTED`. Ambiguous, unrelated, prohibited, malformed, or insufficiently supported requests fail closed to `REJECTED`. Free-form explanations and scores are not part of the consensus result.
+The semantic evaluator must return exactly one JSON object with exactly one key, `decision`, whose value is `APPROVED` or `REJECTED`. Ambiguous, unrelated, prohibited, or insufficiently supported requests are instructed to fail closed to `REJECTED`; a valid `REJECTED` decision is recorded without spending vault funds. Invalid or malformed evaluator output follows the contract’s semantic/LLM error path and does not create a normal rejected request. Free-form explanations and scores are not part of the consensus result.
 
 The implementation uses `gl.nondet.exec_prompt` for the semantic proposal and `gl.vm.run_nondet` so validators independently evaluate the same snapshot and compare the normalized result. Deterministic limits, balances, authorization, and transfers remain outside the model’s authority.
 
@@ -268,6 +268,7 @@ The frontend is configured for the deployed Studio Next contract below. Ordinary
 MANDATE V1 intentionally supports:
 
 - native GEN only;
+- ordinary wallet/EOA recipients in the current Studio scope; approved native GEN payments are emitted as external messages and execute after the parent Intelligent Contract transaction finalizes; current Studio does not support general EVM smart-contract interaction beyond native value transfers to EOAs;
 - one owner and one authorized agent per vault;
 - owner-controlled deposits, policy updates, agent replacement, pausing, resuming, and withdrawals;
 - fixed-period budgets rather than a rolling-window budget;
