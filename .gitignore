@@ -1,0 +1,30 @@
+# Operating-system and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and local runtime files
+*.log
+*.local
+
+# JavaScript dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+.output/
+.vinxi/
+.vite/
+.cache/
+.tanstack/
+.nitro/
+.wrangler/
+
+# Local Lovable metadata
+.lovable/
